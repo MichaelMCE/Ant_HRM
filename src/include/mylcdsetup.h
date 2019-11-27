@@ -24,9 +24,9 @@
 #define _MYLCDSETUP_H_
 
 
-#include <conio.h>
+//#include <conio.h>
 #include <windows.h>
-#include "mylcd.h"
+#include <mylcd.h>
 
 #ifndef mylog
 #define mylog printf

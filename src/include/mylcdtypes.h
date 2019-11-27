@@ -1,11 +1,6 @@
 
-// libmylcd - http://mylcd.sourceforge.net/
-// An LCD framebuffer and text rendering API
-// Michael McElligott
-// okio@users.sourceforge.net
-
-//  Copyright (c) 2005-2011  Michael McElligott
-//
+//  Copyright (c) Michael McElligott
+// 
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU LIBRARY GENERAL PUBLIC LICENSE
 //  as published by the Free Software Foundation; either version 2
@@ -14,11 +9,10 @@
 //  This program is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU LIBRARY GENERAL PUBLIC LICENSE for more details.
-//
-//	You should have received a copy of the GNU Library General Public
-//	License along with this library; if not, write to the Free
-//	Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+//  GNU LIBRARY GENERAL PUBLIC LICENSE for details.
+
+
+
 
 #ifndef _MYLCDTYPES_H_
 #define _MYLCDTYPES_H_
@@ -35,11 +29,13 @@ typedef struct TFRAME TFRAME;
 typedef struct TFONT TFONT;
 typedef struct TWFONT TWFONT;
 
+typedef void (*pConverterFn) (TFRAME *frm, unsigned int *buffer);
+
 typedef struct{
-	int top;
-	int btm;
 	int left;
 	int right;
+	int top;
+	int btm;
 }TRECT;
 
 typedef struct{
@@ -51,38 +47,61 @@ typedef struct{
 }TDRIVER;
 
 typedef struct{
+	int x;
+	int y;
+	int width;		// max width, or if minus then increase width by
+	int height;		// as above
+}TMETRICS;
+
+typedef struct{
+	int x;
+	int y;
+}TPOINTXY;
+
+typedef struct{
+	int x;
+	int y;
+	int data;		// colour, intensity, etc..
+}___T2POINT;
+
+typedef struct{
+	___T2POINT	*points;
+	int pointsTotal;
+	int pointsSpace;
+	int dataState;
+}TGLYPHPOINTS;
+
+typedef struct{
 	unsigned int encoding;	// unicode reference code point
-	int	xoffset;	// [bbx] x offset of glyph within frame
-	int	yoffset;	// [bbx] y offset of glyph within frame
-	int	w;			// [bbx] width of this glyph
-	int	h;			// [bbx] height of this glyph
-	int	dwidth;		// bdf 'DWIDTH' field
-	TFRAME	*f;		// glyph data
+	int	xoffset;			// [bbx] x offset of glyph within frame
+	int	yoffset;			// [bbx] y offset of glyph within frame
+	int	w;					// [bbx] width of this glyph
+	int	h;					// [bbx] height of this glyph
+	int	dwidth;				// bdf 'DWIDTH' field
+	TRECT box;	
+	TGLYPHPOINTS *gp;
+	TGLYPHPOINTS *ep[LTR_TOTAL];
 }TWCHAR;
 
 typedef struct{
-	TWCHAR *glyph;		// glyph source
-	struct TFRAME *to;	// destination frame
-
-	int dx;				// destination point
-	int dy;				//
-
-	int x1;				// source rect within glyph
-	int y1;				//
-	int x2;				//
-	int y2;				//
-
-	int style;			// copy type
-	unsigned int flags;	// print flags (LPRT_nn)
-	unsigned int attributes[LTR_TOTAL][16];
+	TWCHAR *glyph;			// glyph source
+	TFRAME *to;				// destination frame
+	int dx;					// destination point
+	int dy;					//
+	unsigned int flags;		// print flags (LPRT_nn)
+	unsigned int attributes[LTR_TOTAL][16];		// shouldn't really be here
 }TLPRINTREGION;
+
+typedef void (*pGlyphRenderFn) (TLPRINTREGION *loc);
 
 typedef struct{
 	TLPRINTREGION *loc;
-	int (*copy) (TLPRINTREGION *loc);	// glyph render method
+	
+	pGlyphRenderFn copy;		// glyph render method
+	intptr_t udata;
 
-	int	foreGround;		// ink colour when drawing and printing
-	int backGround;		// paper colour when printing and clearing frame or display
+	int	foreGround;			// ink colour when drawing and printing
+	int backGround;			// paper colour when printing and clearing frame or display
 
 	int framesSubmitted;
 	int framesRendered;
@@ -95,13 +114,13 @@ typedef struct{
 }THWDPATHS;
 
 typedef struct{
-	TFONT *bmp;	// tga and co.
+	TFONT *bmp;			// tga and co.
 	TWFONT *bdf;
 }TFONTTREES;
 
 typedef struct{
-	UTF32 enc;	// code point
-	UTF32 uni;	// unicode location
+	UTF32 enc;			// code point
+	UTF32 uni;			// unicode location
 }TTUNIENCMAP;
 
 typedef struct TMAPTABLE{
@@ -127,19 +146,28 @@ typedef struct{
 	unsigned int charRef:1;		// 0 = enabled
 	unsigned int charCombine:1;	// 1 = disabled
 	unsigned int fill:30;
-	int hextodec[128];
-	int glyphCount;
+	int hextodec[128];		// shouldn't be here
+	int glyphCount;			// likewise
+	
+	struct {
+		struct {
+			int defaultHeight;		// and width
+		}ico;
+	}image;
 }TLIBVARFLAGS;
+
 
 typedef struct{
 	TDRIVER **devlist;		// list of active displays
-	unsigned int devcount;	// total activated displays/output devices
+	unsigned int devcount;	// total activated displays and/or output devices
 	int caps[CAPS_TOTAL];	// capability flags
+	
 	TTRENDER *render;
 	THWDPATHS *paths;
 	TFONTTREES *fonts;
 	TCMAPTREE *cmap;
 	TLIBVARFLAGS flags;		// miscellaneous flags and variables
+	
 	void *sync;
 	void *flist;
 	void *dtree;
@@ -171,23 +199,23 @@ struct TDISPLAYDRIVER{
 	char name[lMaxDriverNameLength+1];
 	char comment[lMaxDriverCommentLength+1];
 
-	int status;			// display status; ready, closed, disengage
-	int	width;			// computed display width (virtual)
-	int	height;			// computed display height (virtual)
-	int	WIDTH;			// actual hardware width
-	int	HEIGHT;			// actual hardware height
-	int bpp;			// hardware bits per pixel. LFRM_BPP_nn
-	int	clr;			// value used to clear or reset display
-	int	port;			// lpt/serial port address
-	int currentColumn;	// last column addressed (not always used)
-	int currentRow;		// last row or page addressed (not always used)
+	int status;						// display status; ready, closed, disengage
+	int	width;						// computed display width (virtual)
+	int	height;						// computed display height (virtual)
+	int	WIDTH;						// actual hardware width
+	int	HEIGHT;						// actual hardware height
+	int bpp;						// hardware bits per pixel (LFRM_BPP_nn)
+	int	clr;						// value used to clear/blank display
+	int	port;						// lpt/serial port address
+	int currentColumn;				// last column addressed (not always used)
+	int currentRow;					// last row or page addressed (not always used)
 
-	THWD *hw;			// root description
-	TFRAME *back;		// backbuffer
+	THWD *hw;						// root description
+	TFRAME *back;					// backbuffer
 	TFRAME *temp[LFRM_TYPES+1];		// front buffer - copy of frame area which is sent to display
 	intptr_t tmpGrpId;
-	intptr_t *opt;		// storage list for individual display configuration(s) or settings
-	int optTotal;		// number of options available for this display
+	intptr_t *opt;					// storage list for individual display configuration(s) or settings
+	int optTotal;					// number of options available for this display
 
 	int	(*open)			(TDRIVER *drv);
 	int	(*close)		(TDRIVER *drv);
@@ -234,20 +262,15 @@ struct TFRAME{
 	int		width;			// frame width in pixels
 	int		height;			// frame height in pixels
 	int 	pitch;			// width of one row, in bytes
-	size_t	frameSize;		// size of pixel surface buffer, in bytes. May include tail padding
 	ubyte	*pixels;		// pixel data
-	ubyte	bpp;			// bits per pixel (LFRM_BPP_xx)
+	size_t	frameSize;		// size of pixel buffer in bytes, includes padding
+	ubyte	bpp;			// idx to bits per pixel (LFRM_BPP_xx)
 	ubyte	style;			// pixel operation mode (LSP_xxx)
-	void	*udata;			// user data.
+	int		groupId;
+	void	*udata_ptr;		// user storage, pointer
+	int 	udata_int;		// user storage, int
 	TPIXELPRIMITVES *pops;	// pixel access methods
 };
-
-typedef struct{
-	int left;
-	int right;
-	int top;
-	int bottom;
-}TCHARBOX;
 
 typedef struct{
 	int x1;
@@ -290,47 +313,43 @@ struct TFONT{
 	unsigned int autoheight:1;	// automatically calculate cell height (charH)
 	unsigned int padding:28;
 
-	int		id;				// font id
-	int		charW;			// maximum width of all glyphs
-	int		charH;			// mamimum height of all glyphs
-	int		charsPerRow;	// chracters per row
-	int		rowsPerImage;	// above rows per image
-	int		xoffset;		// horiztonal glyph postion offset
-	int		yoffset;		// vertical glyph postion offset
-	int		choffset;		// index value added to character encoding
-	int		charSpace;		// space between adjacent glyphs
-	int		lineSpace;		// number of vertical pixels to skip between wrapped lines
+	int id;				// font id
+	int charW;			// maximum width of all glyphs
+	int charH;			// mamimum height of all glyphs
+	int charsPerRow;	// chracters per row
+	int rowsPerImage;	// above rows per image
+	int xoffset;		// horiztonal glyph postion offset
+	int yoffset;		// vertical glyph postion offset
+	int choffset;		// index value added to character encoding
+	int charSpace;		// space between adjacent glyphs
+	int lineSpace;		// number of vertical pixels to skip between wrapped lines
 
-	TFRAME	*f;				// bitmap container
-	TRECT	c[256];			// storage for characters 1-255
-	wchar_t	file[MaxPath];
-	int		imageType;		// BMP, PGM, PNG or TGA
+	TFRAME *f;			// bitmap container
+	TRECT c[256];		// storage for characters 1-255
+	wchar_t file[MaxPath];
+	int imageType;		// BMP, PGM, PNG or TGA
 	TFONT *next;
 	THWD *hw;
 };
 
-typedef struct{
-	int x;
-	int y;
-}T2POINT;
-
 typedef struct {
 	int x;
 	int y;
-	int time;
-	int dt;
 	int z1;
 	int z2;
+	//uint64_t time;
+	double time;
+	double dt;
 	unsigned int count;	// this is n'th report
-	ubyte pen;
-	ubyte pressure;
+	unsigned char pen;
+	unsigned char pressure;
 	unsigned int id;
 }TTOUCHCOORD;
 #define TTOUCHCOORD30 1
 
 typedef struct{
 	UTF32 *uslist;		// list of code points requested but found to be missing from font
-	int	 total;			// number of chars in list (should be equal to (uslist size/sizeof(UTF32))
+	int total;			// number of chars in list (should be equal to (uslist size/sizeof(UTF32))
 }TUSC;
 
 typedef struct{
@@ -339,48 +358,56 @@ typedef struct{
 }TCHAROFFSET;
 
 struct TWFONT {
-	int		built;			// 0=font not built, 1=font built
+	int built;					// is font allocated and built
+	int FontID;
 	unsigned int flags;
 
-	wchar_t	file[MaxPath];	//file path
-	char	fontName[128];	//font descryption information
-	char	CharsetRegistry[128];	// standard for which this font complies with
-	char	FamilyName[64];	//font belongs to this family
+	struct {
+		int enabled;
+		int chainId;			// if this font has an active render filter chain attached, then this is the reference ID
+	}filter;
 
-	int		FontID;
-	unsigned int DefaultChar;	//default char to use when font does not support requested char
-	int		CharsBuilt;		//actual number of glyphs built
-	int		GlyphsInFont;	//number of glyphs in font (BDF 'CHARS' field)
-	int		QuadWidth;		//FBB, quad width = max width of all char's
-	int		QuadHeight;		//FBB, quad height = max height of all char's
-	int		QuadXOffset;	//FBB - FONTBOUNDINGBOX
-	int		QuadYOffset;	//FBB
-	int		fontAscent;		//BDF 'FONT_ASCENT' field
-	int		fontDescent;	//BDF 'FONT_DESCENT' field
-	char	spacing;		//BDF 'SPACING' field
-	int		PixelSize;		//BDF 'PIXE_LSIZE' field describing maximum rows, ie height
-	int		CharSpace;		//total number of pixels to skip between horizontal character rendering
-	int		LineSpace;		//number of vertical pixels to skip between wrapped lines
+	wchar_t file[MaxPath];		// file path
+	char fontName[128];			// font descryption information
+	char CharsetRegistry[128];	// standard for which this font complies with
+	char FamilyName[64];		// font belongs to this family
 
-	void	*fp;			//temp file handle
-	TUSC	uscl;			//list of requested but unsupported code points
-	int		frmGroupID;		//unique (common throughout this font) ID to group character frames together
-	unsigned int maxCharIdx;		//final character index (max chars)
-	TCHAROFFSET	*chrOffset;
+	unsigned int DefaultChar;	// glyph to use in place of missing glyph (in font)
+	int CharsBuilt;				// actual number of glyphs built
+	int GlyphsInFont;			// reported number of glyphs in font (BDF 'CHARS' field)
+	int QuadWidth;				// FBB, quad width = max width of all char's
+	int QuadHeight;				// FBB, quad height = max height of all char's
+	int QuadXOffset;			// FBB - FONTBOUNDINGBOX
+	int QuadYOffset;			// FBB
+	int fontAscent;				// BDF 'FONT_ASCENT' field
+	int fontDescent;			// BDF 'FONT_DESCENT' field
+	char spacing;				// BDF 'SPACING' field
+	int PixelSize;				// BDF 'PIXEL_SIZE' field describing maximum rows, ie height
+	int CharSpace;				// total number of pixels to skip between horizontal character rendering
+	int LineSpace;				// number of vertical pixels to skip between wrapped lines
+	int spaceSpacing;			// pixels to add/subtract from zero width glyphs (eg; ' '). is always 0 by default
+
+	void *fp;					// file handle used between calls
+	TUSC uscl;					// list of requested but unsupported code points
+
+	unsigned int maxCharIdx;	// final character index (max chars)
+	TCHAROFFSET *chrOffset;
 	unsigned int coTotal;
-	TWCHAR	**chr;			// lists of glyphs
+	
+	TWCHAR **chr;				// glyphs' container
 	THWD *hw;
+	
 	TWFONT *next;
 };
 
 typedef struct {
-	TFONT	*font;	// image file (bitmap) font
-	TWFONT	*wfont;	// bdf wide font
+	TFONT *font;				// image file (bitmap) font
+	TWFONT *wfont;				// bdf wide font
 
-	int		total;	// total fonts registered
-	int		fi;		// font index, a counter really
-	int		id;		// registered font id
-	THWD	*hw;
+	int total;					// total fonts registered
+	int fi;						// font index, a counter really
+	int id;						// registered font id
+	THWD *hw;
 }TENUMFONT;
 
 typedef struct{
@@ -392,7 +419,6 @@ typedef struct{
 	THWD *hw;
 }TREGDRV;
 
-typedef void (*pConverterFn) (TFRAME *frm, unsigned int *buffer);
 
 #endif
 

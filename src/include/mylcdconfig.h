@@ -1,11 +1,6 @@
 
-// libmylcd - http://mylcd.sourceforge.net/
-// An LCD framebuffer and text rendering API
-// Michael McElligott
-// okio@users.sourceforge.net
-
-//  Copyright (c) 2005-2011  Michael McElligott
-//
+//  Copyright (c) Michael McElligott
+// 
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU LIBRARY GENERAL PUBLIC LICENSE
 //  as published by the Free Software Foundation; either version 2
@@ -14,11 +9,10 @@
 //  This program is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU LIBRARY GENERAL PUBLIC LICENSE for more details.
-//
-//	You should have received a copy of the GNU Library General Public
-//	License along with this library; if not, write to the Free
-//	Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+//  GNU LIBRARY GENERAL PUBLIC LICENSE for details.
+
+
+
 
 #ifndef _MYLCDCONFIG_H_
 #define _MYLCDCONFIG_H_
@@ -36,58 +30,63 @@
 // ie; frame->pops->set(frame, ...) becomes lSetPixel(frame, ...)
 #define __BUILD_PIXELPRIMITIVEEXPORTS__ 0
 
-// download optional font pack from http://mylcd.sourceforge.net/
-// install to: fonts/tga/tgapack1/
-#define __USE_TGAFONTPACK1__			1
-
 // '1' enables HTML character and entity reference support
-#define __BUILD_CHARENTITYREF_SUPPORT__ 1
+#define __BUILD_NUM_ENTITYREF_SUPPORT__ 0
+#define __BUILD_CHR_ENTITYREF_SUPPORT__ 0
 
 // enable/disable drawing API
 #define __BUILD_DRAW_SUPPORT__			1
 
 // enable/disable rotate API
-#define __BUILD_ROTATE_SUPPORT__		1
+#define __BUILD_ROTATE_SUPPORT__		0
 
 // enable/disable scroll API
 #define __BUILD_SCROLL_SUPPORT__		0
 
 // enable/disable support for PNG images
 #define __BUILD_PNG_READ_SUPPORT__		1
-#define __BUILD_PNG_WRITE_SUPPORT__		1
+#define __BUILD_PNG_WRITE_SUPPORT__		0
 
 // enable/disable support for JPEG images
-#define __BUILD_JPG_READ_SUPPORT__		1
+#define __BUILD_JPG_READ_SUPPORT__		0
 #define __BUILD_JPG_WRITE_SUPPORT__		0
 
 // enable/disable support for BMP images
-#define __BUILD_BMP_SUPPORT__			1
+#define __BUILD_BMP_SUPPORT__			0
 
 // enable/disable support for TGA images
 // (supports TARGA RLE read and write)
-#define __BUILD_TGA_SUPPORT__			1
+#define __BUILD_TGA_SUPPORT__			0
 
 // enable/disable support for PGM images
-// limited to 1bpp images and frames
-#define __BUILD_PGM_SUPPORT__			1
+// limited to 1bpp images and frame1
+#define __BUILD_PGM_SUPPORT__			0
 
-// compile support for image fonts (tga, bmp, etc..)"
-#define __BUILD_BITMAP_FONT_SUPPORT__	1
+// enable write only support for GIF
+// first frame only
+#define __BUILD_GIF_SUPPORT__			0
+#define ENABLE_GIFPSD __BUILD_GIF_SUPPORT__
+
+// support for loading .ico and extraction of icons from .exe
+#define __BUILD_ICO_SUPPORT__			0
 
 // enable/disable support for BDF font
-#define __BUILD_BDF_FONT_SUPPORT__		1
+#define __BUILD_BDF_FONT_SUPPORT__		0
+
+// compile support for image fonts (tga, bmp, etc..)"
+#define __BUILD_BITMAP_FONT_SUPPORT__	0
 
 // enable/disable print API
-#define __BUILD_PRINT_SUPPORT__			1
+#define __BUILD_PRINT_SUPPORT__			0
 
 // enable/disable internal font handling
 // may require __BUILD_CHRDECODE_SUPPORT__
 // requires either __BUILD_BITMAP_FONT_SUPPORT__
 // or __BUILD_BDF_FONT_SUPPORT__
-#define __BUILD_FONTS_SUPPORT__			1
+#define __BUILD_FONTS_SUPPORT__			0
 
 // enable internal character decoding
-#define __BUILD_CHRDECODE_SUPPORT__		1
+#define __BUILD_CHRDECODE_SUPPORT__		0
 
 // enable/disable internal Big5 lookup table
 // 1:use an internal lookup table, 0:use map file CP950
@@ -95,10 +94,13 @@
 
 // enable/disable support for EUC-JP, ISO-2022-JP and Shift JIS decoding
 // (EUC and the 7bit Japanese code points are promoted to Shift_JIS.)
-#define __BUILD_INTERNAL_JISX0213__		1
+#define __BUILD_INTERNAL_JISX0213__		0
 
 // enable/disable support for HZ GB2312.80 decoding.
-#define __BUILD_INTERNAL_HZGB2312__		1
+#define __BUILD_INTERNAL_HZGB2312__		0
+
+// disable colour depths but 24/32 bpp
+#define __BUILD_2432BITONLY_SUPPORT__	0
 
 
 #define __BUILD_NULLDISPLAY__			0		// Template
@@ -121,12 +123,13 @@
 #ifdef __WIN32__
 #define __BUILD_USB13700DLL__			0		// S1D13700/USB13700 accessed through display_lib_USB13700.dll (is dynamically loaded)
 #define __BUILD_USBD480DLL__			0		// USBD480 through USBD480_lib.dll. HI-Speed USB display controller (www.lcdinfo.com) for the Sharp LQ043 LCD (480x272)
-#define __BUILD_USBD480__				1		// USBD480 through libusb0 and HID (composite interface, if0).
+#define __BUILD_USBD480__				0		// USBD480 through libusb0 and HID (composite interface, if0).
 #define __BUILD_G15DISPLAY__			0		// requires Logitech driver software (tested with v1.02/04). Links to lglcd.lib
-#define __BUILD_G19DISPLAY__			1		// requires Logitech v3.02 driver or later. Links to lglcd.lib
-#define __BUILD_DDRAW__					1		// A virtual display using DirectDraw
+#define __BUILD_G19DISPLAY__			0		// requires Logitech v3.02 driver or later. Links to lglcd.lib
+#define __BUILD_SBUI__					0		// Interface to SwitchBlade UI (Razer)
+#define __BUILD_DDRAW__					1		// Virtual display using DirectDraw
 #define __BUILD_SDL__					0		// Virtual display using SDL. Requires SDL.dll
-#define __BUILD_OPENGL__				0
+#define __BUILD_OPENGL__				0		// Virtual display using OpenGL
 #define __BUILD_FT245__					0		// requires FTD2XX.dll (is dynamically loaded)
 #define __BUILD_WINIO__					0		// requires winio.sys
 #define __BUILD_OPENPARPORT__			0
@@ -143,7 +146,7 @@
 #define __BUILD_SERIAL__				0
 #define __BUILD_FT245__					0
 #define __BUILD_G15DISPLAY__			0
-#define __BUILD_GL__					1
+#define __BUILD_OPENGL__				1
 #define __BUILD_SDL__					1
 #endif
 
@@ -153,7 +156,7 @@
 #define MaxPath							256
 
 // character to use in place of tab (0x09)
-#define lTabSpaceChar					' '
+#define lTabSpaceChar					32		// a Space
 
 // number of lTabSpaceChar's per tab replacement
 #define lTabSpaceWidth					4
@@ -164,7 +167,7 @@
 
 #define MINFRAMESIZEW					2
 #define MINFRAMESIZEH					MINFRAMESIZEW
-#define MAXFRAMESIZEW					131072
+#define MAXFRAMESIZEW					(131072*2)
 #define MAXFRAMESIZEH					MAXFRAMESIZEW
 
 #define lMaxDriverNameLength			127
@@ -186,7 +189,11 @@
 # define lFontPath						L"../fonts/"
 # define lCharacterMapPath				L"../mappings/"
 #
+//#ifdef BUILD_LIB
 # define MYLCD_EXPORT __declspec(dllexport) MYLCD_APICALL
+//#else
+//# define MYLCD_EXPORT __declspec(dllimport) MYLCD_APICALL
+//#endif
 #
 #else
 # define MYLCD_EXPORT
@@ -230,7 +237,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <wchar.h>
-
+#include <wtypes.h> 
 
 #endif
 

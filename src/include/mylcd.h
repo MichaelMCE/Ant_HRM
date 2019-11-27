@@ -1,11 +1,6 @@
 
-// libmylcd - http://mylcd.sourceforge.net/
-// An LCD framebuffer and text rendering API
-// Michael McElligott
-// okio@users.sourceforge.net
-
-//  Copyright (c) 2005-2011  Michael McElligott
-//
+//  Copyright (c) Michael McElligott
+// 
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU LIBRARY GENERAL PUBLIC LICENSE
 //  as published by the Free Software Foundation; either version 2
@@ -14,11 +9,10 @@
 //  This program is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU LIBRARY GENERAL PUBLIC LICENSE for more details.
-//
-//	You should have received a copy of the GNU Library General Public
-//	License along with this library; if not, write to the Free
-//	Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+//  GNU LIBRARY GENERAL PUBLIC LICENSE for details.
+
+
+
 
 #ifndef _MYLCD_H_
 #define _MYLCD_H_
@@ -1088,7 +1082,7 @@ MYLCD_EXPORT int
 lUpdate (const THWD *hw, const void *buffer, const size_t bufferLen);
 
 // Send a frame area to display
-// Not supported by every controller. ie; USBD480 and G15 will redirect to lRefresh()
+// Not supported by every controller. eg; USBD480 and G15 will redirect to lRefresh()
 MYLCD_EXPORT int
 lRefreshArea (TFRAME *frame, const int x1, const int y1, const int x2, const int y2);
 
@@ -1135,7 +1129,7 @@ lDrawMaskAEx (const TFRAME *src, const TFRAME *mask, TFRAME *des, const int Xoff
 
 // miscellaneous primitives
 MYLCD_EXPORT int
-lDrawPolyLine (TFRAME *frame, T2POINT *lppt, int tLines, const int colour);
+lDrawPolyLine (TFRAME *frame, ___T2POINT *lppt, int tLines, const int colour);
 
 MYLCD_EXPORT int
 lDrawPolyLineEx (TFRAME *frame, TLPOINTEX *pt, int tLines, const int colour);
@@ -1144,7 +1138,7 @@ MYLCD_EXPORT int
 lDrawPolyLineTo (TFRAME *frame, TPOINTXY *lppt, int tnodes, const int colour);
 
 MYLCD_EXPORT int
-lDrawPolyLineDottedTo (TFRAME *frame, T2POINT *lppt, int tnodes, const int colour);
+lDrawPolyLineDottedTo (TFRAME *frame, ___T2POINT *lppt, int tnodes, const int colour);
 
 MYLCD_EXPORT int
 lDrawCircle (TFRAME *frame, int xcenter, int ycenter, int radius, const int colour);
@@ -1508,7 +1502,7 @@ lFrame1BPPToRGB (TFRAME *frame, void *des, int des_lfrm_bpp_nn, const int clrLow
 MYLCD_EXPORT pConverterFn
 lGetConverter (THWD *hw, int src_lfrm_bpp_nn, int des_lfrm_bpp_nn);
 /* eg;
-pConverterFn fn = lGetConverter(LFRM_BPP_32, LFRM_BPP_16);
+pConverterFn fn = lGetConverter(hw, LFRM_BPP_32, LFRM_BPP_16);
 if (fn){
 	unsigned int *buffer = malloc(surface->height*surface->width*2);
 	fn(surface, buffer);	// do convert and copy
