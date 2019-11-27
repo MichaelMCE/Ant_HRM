@@ -127,7 +127,7 @@ void marqueeAdd (THR *hr, TMARQUEE *mq, const char *str, const unsigned int time
 	if (mq && WaitForSingleObject(mq->hLock, INFINITE) == WAIT_OBJECT_0){
 		my_memcpy(&mq->entry[0], &mq->entry[1], sizeof(TMARQUEELINE) * (mq->total-1));
 
-		strncpy(mq->entry[mq->total-1].line, str, MAX_PATH);
+		strncpy(mq->entry[mq->total-1].line, str, MAX_PATH-1);
 		mq->entry[mq->total-1].time = timeout;
 		mq->ready = 1;
 		ReleaseMutex(mq->hLock);
